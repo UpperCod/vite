@@ -8,7 +8,6 @@ const config = {
     root: path.join(process.cwd(), "tests/example/"),
     build: {
         target: "esnext",
-        polyfillDynamicImport: false,
     },
     plugins: [
         pluginMetaUrl({

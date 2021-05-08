@@ -20,7 +20,7 @@
         "build": "rollup -c",
         "dev": "rollup -c -w",
         "test:1": "vite build --config tests/example/vite.config.js",
-        "test": "ava",
+        "test": "npm run test:1 && ava",
         "prepublishOnly": "npm run test && npm run build && npm run types"
     },
     "repository": {
