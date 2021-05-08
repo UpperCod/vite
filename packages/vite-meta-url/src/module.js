@@ -8,17 +8,17 @@ import { replaceImport } from "@uppercod/replace-import";
  */
 export default function pluginReplaceImport(files) {
     let isServer;
-    let ready = {};
+    let sources = {};
     const ext = Object.keys(files).filter((key) => files[key]);
     const filter = RegExp(`\\.(${ext.join("|")})$`);
     return {
-        name: "plugin-css",
-        configResolved(resolvedConfig) {
-            // store the resolved config
-            isServer = resolvedConfig.command == "serve";
+        name: "plugin-meta-url",
+        configureServer(server) {
+            isServer = true;
+            server.watcher.on("change", (path) => delete sources[path]);
         },
-        async transform(code, id) {
-            if (/\.([tj]s|[jt]sx)$/.test(id)) {
+        transform(code, id) {
+            if (!/node_modules/.test(id) && /\.([tj]s|[jt]sx)$/.test(id)) {
                 const dir = path.dirname(id);
                 return replaceImport({
                     code,
@@ -28,39 +28,44 @@ export default function pluginReplaceImport(files) {
 
                         let source;
 
-                        if (!isServer) {
-                            const { base, ext } = path.parse(id);
-                            const type = ext.replace(".", "");
-                            ready[id] =
-                                ready[id] ||
-                                Promise.resolve().then(async () => {
-                                    const source = await (typeof files[type] ==
-                                        "function"
-                                        ? files[type]
-                                        : readFile)(path.join(dir, token.src));
+                        const { base, ext } = path.parse(id);
+                        const type = ext.replace(".", "");
 
-                                    return typeof source == "object" &&
-                                        source.inline
-                                        ? source
-                                        : {
-                                              id: this.emitFile({
-                                                  name: base,
-                                                  type: "asset",
-                                                  source,
-                                              }),
-                                          };
-                                });
+                        sources[id] =
+                            sources[id] ||
+                            Promise.resolve().then(async () => {
+                                const src = path.join(dir, token.src);
+                                let source;
 
-                            source = await ready[id];
-                        }
+                                if (typeof files[type] == "function") {
+                                    source = await files[type](src);
+                                } else if (!isServer) {
+                                    source = await readFile(src);
+                                }
+
+                                return typeof source == "object" &&
+                                    source.inline
+                                    ? source
+                                    : {
+                                          id: isServer
+                                              ? token.src
+                                              : this.emitFile({
+                                                    name: base,
+                                                    type: "asset",
+                                                    source,
+                                                }),
+                                      };
+                            });
+
+                        source = await sources[id];
 
                         token.toString = () =>
                             `const ${token.scope} = ${
-                                isServer
-                                    ? `new URL("${token.src}", import.meta.url).href`
-                                    : source.inline
+                                source.inline
                                     ? `\`${source.inline}\``
-                                    : `(import.meta.ROLLUP_FILE_URL_${source.id})`
+                                    : isServer
+                                    ? `new URL("${source.id}", import.meta.url).href`
+                                    : `import.meta.ROLLUP_FILE_URL_${source.id}`
                             }`;
 
                         return token;
