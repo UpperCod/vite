@@ -12,7 +12,10 @@ const config = {
     },
     plugins: [
         pluginMetaUrl({
-            css: true,
+            svg: true,
+            async css() {
+                return ".my-css{color:red}";
+            },
         }),
     ],
 };

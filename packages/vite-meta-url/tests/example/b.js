@@ -1,1 +1,3 @@
-export default 20;
+import style from "./style.css";
+
+export default { style };

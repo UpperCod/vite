@@ -26,8 +26,6 @@ export default function pluginMetaUrl(files) {
                     replace: async (token) => {
                         const id = path.join(dir, token.src);
 
-                        //const name = getHashFileName(id);
-
                         let referenceId;
 
                         if (!isServer) {

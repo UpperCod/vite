@@ -1,6 +1,16 @@
 import test from "ava";
-import { example } from "../src/module.js";
+import { readFile } from "fs/promises";
+import glob from "fast-glob";
 
 test("simple replace", async (t) => {
-    t.is(example("a"), "a");
+    const files = await glob("tests/example/dist/assets/*");
+    await Promise.all(
+        files.map(async (file) => {
+            const [, filename] = file.match(/\/(\w+)\.\w+.\w+/);
+            t.is(
+                await readFile(file, "utf-8"),
+                await readFile(`tests/example/expect-${filename}.txt`, "utf-8")
+            );
+        })
+    );
 });

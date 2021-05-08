@@ -35,13 +35,12 @@
     "homepage": "https://github.com/uppercod/vite-plugins#readme",
     "dependencies": {
         "vite": "latest",
-        "@uppercod/replace-import": "latest",
-        "@web/rollup-plugin-import-meta-assets": "latest"
+        "@uppercod/replace-import": "latest"
     },
     "devDependencies": {
-        "ava": "^3.10.1",
-        "rollup": "^2.21.0",
-        "typescript": "^4.2.4"
+        "ava": "latest",
+        "rollup": "latest",
+        "typescript": "latest"
     },
     "ava": {
         "files": [

@@ -1,3 +1,3 @@
-import style from "./style.css";
+import logo from "./logo.svg";
 
-export default { style };
+export default { logo };
