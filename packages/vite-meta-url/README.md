@@ -10,6 +10,9 @@ resolve a file using url.href in server or build mode when using vite
 import pluginMetaUrl from "@uppercod/vite-meta-url";
 
 export default {
+    build: {
+        target: "esnext",
+    },
     plugins: [
         pluginFileUrl({
             /**

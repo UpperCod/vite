@@ -7,25 +7,31 @@ monorepo of plugins created by @uppercod for vite:
 replace imports of imported js files within vite, by URL based imports or inline content
 
 ```js
-import path from "path";
 import pluginMetaUrl from "@uppercod/vite-meta-url";
 
-/**
- * @type {import("vite").UserConfig}
- */
-const config = {
+export default {
     build: {
         target: "esnext",
     },
     plugins: [
-        pluginMetaUrl({
-            svg: true,
-            async css() {
-                return { inline: ".my-css{color:red}" };
+        pluginFileUrl({
+            /**
+             * replace the import with a text string based on the return
+             * @param {string}
+             * @returns {string|Promise<string>}
+             */
+            css: async (file) => {
+                return { inline: `.button{color:red;}` };
+            },
+            /**
+             * @param {string}  file
+             * @returns {string|Promise<string>}
+             */
+            svg: async (file) => {
+                /**any asynchronous optimization of the content**/
+                return `<svg>...</svg>`;
             },
         }),
     ],
 };
-
-export default config;
 ```
