@@ -3,10 +3,10 @@ import { readFile } from "fs/promises";
 import { replaceImport } from "@uppercod/replace-import";
 
 /**
- * @param {Object<string,boolean|(file:File)=>(Promise<string>|string)} files
+ * @param {Files} files
  * @returns {import("vite").Plugin}
  */
-export default function pluginMetaUrl(files) {
+export default function pluginReplaceImport(files) {
     let isServer;
     let ready = {};
     const ext = Object.keys(files).filter((key) => files[key]);
@@ -26,34 +26,41 @@ export default function pluginMetaUrl(files) {
                     replace: async (token) => {
                         const id = path.join(dir, token.src);
 
-                        let referenceId;
+                        let source;
 
                         if (!isServer) {
                             const { base, ext } = path.parse(id);
                             const type = ext.replace(".", "");
                             ready[id] =
                                 ready[id] ||
-                                Promise.resolve().then(async () =>
-                                    this.emitFile({
-                                        name: base,
-                                        type: "asset",
-                                        source: await (typeof files[type] ==
-                                            "function"
-                                            ? files[type]
-                                            : readFile)(
-                                            path.join(dir, token.src)
-                                        ),
-                                    })
-                                );
+                                Promise.resolve().then(async () => {
+                                    const source = await (typeof files[type] ==
+                                        "function"
+                                        ? files[type]
+                                        : readFile)(path.join(dir, token.src));
 
-                            referenceId = await ready[id];
+                                    return typeof source == "object" &&
+                                        source.inline
+                                        ? source
+                                        : {
+                                              id: this.emitFile({
+                                                  name: base,
+                                                  type: "asset",
+                                                  source,
+                                              }),
+                                          };
+                                });
+
+                            source = await ready[id];
                         }
 
                         token.toString = () =>
                             `const ${token.scope} = ${
                                 isServer
                                     ? `new URL("${token.src}", import.meta.url).href`
-                                    : `(import.meta.ROLLUP_FILE_URL_${referenceId})`
+                                    : source.inline
+                                    ? `\`${source.inline}\``
+                                    : `(import.meta.ROLLUP_FILE_URL_${source.id})`
                             }`;
 
                         return token;
@@ -72,4 +79,12 @@ export default function pluginMetaUrl(files) {
  * @property {string} src
  * @property {string} type
  * @property {string} dest
+ */
+
+/**
+ * @typedef {{inline:string}} Inline
+ */
+
+/**
+ * @typedef {Object<string,boolean|(file:File)=>(Promise<string|Uint8Array|Inline>|string|Inline)} Files
  */

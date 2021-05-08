@@ -14,7 +14,7 @@ const config = {
         pluginMetaUrl({
             svg: true,
             async css() {
-                return ".my-css{color:red}";
+                return { inline: ".my-css{color:red}" };
             },
         }),
     ],

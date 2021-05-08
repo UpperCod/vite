@@ -12,7 +12,14 @@ import pluginMetaUrl from "@uppercod/vite-meta-url";
 export default {
     plugins: [
         pluginFileUrl({
-            css: true, // output content as file
+            /**
+             * replace the import with a text string based on the return
+             * @param {string}
+             * @returns {string|Promise<string>}
+             */
+            css: async (file) => {
+                return { inline: `.button{color:red;}` };
+            },
             /**
              * @param {string}  file
              * @returns {string|Promise<string>}
@@ -31,7 +38,7 @@ export default {
 ```js
 import styleUrl from "./style.css";
 
-console.log(styleUrl.href);
+console.log(styleUrl);
 ```
 
 the `css` files will be copied to the destination and the import will refer to the destination as an example url relative to the module.
