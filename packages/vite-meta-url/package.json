@@ -35,6 +35,7 @@
     "homepage": "https://github.com/uppercod/vite-plugins#readme",
     "dependencies": {
         "vite": "latest",
+        "@types/node": "latest",
         "@uppercod/replace-import": "latest"
     },
     "devDependencies": {
