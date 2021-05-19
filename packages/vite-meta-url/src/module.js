@@ -38,7 +38,7 @@ export default function pluginReplaceImport(files) {
                                 let source;
 
                                 if (typeof files[type] == "function") {
-                                    source = await files[type](src);
+                                    source = await files[type](src, isServer);
                                 } else if (!isServer) {
                                     source = await readFile(src);
                                 }
@@ -62,7 +62,7 @@ export default function pluginReplaceImport(files) {
                         token.toString = () =>
                             `const ${token.scope} = ${
                                 source.inline
-                                    ? `\`${source.inline}\``
+                                    ? source.inline
                                     : isServer
                                     ? `new URL("${source.id}", import.meta.url).href`
                                     : `import.meta.ROLLUP_FILE_URL_${source.id}`
@@ -91,5 +91,5 @@ export default function pluginReplaceImport(files) {
  */
 
 /**
- * @typedef {Object<string,boolean|(file:File)=>(Promise<string|Uint8Array|Inline>|string|Inline)} Files
+ * @typedef {Object<string,boolean|(file: File, isServer: boolean)=>(Promise<string|Uint8Array|Inline>|string|Inline)} Files
  */
