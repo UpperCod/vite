@@ -13,7 +13,7 @@ const config = {
         pluginMetaUrl({
             svg: true,
             async css() {
-                return { inline: ".my-css{color:red}" };
+                return { inline: "`.my-css{color:red}`" };
             },
         }),
     ],
