@@ -1,7 +1,10 @@
 import path from "path";
 import { readFile } from "fs/promises";
 import { replaceImport } from "@uppercod/replace-import";
+import { hash } from "@uppercod/hash";
+import { mapHtmlAttrs, copy } from "./utils.js";
 
+const cwd = process.cwd();
 /**
  * @param {Files} files
  * @returns {import("vite").Plugin}
@@ -9,13 +12,48 @@ import { replaceImport } from "@uppercod/replace-import";
 export default function pluginReplaceImport(files) {
     let isServer;
     let sources = {};
+    let outDir;
     const ext = Object.keys(files).filter((key) => files[key]);
     const filter = RegExp(`\\.(${ext.join("|")})$`);
+
     return {
         name: "plugin-meta-url",
+        configResolved(config) {
+            outDir = path.resolve(cwd, config.root) + "/" + config.build.outDir;
+            return config;
+        },
         configureServer(server) {
             isServer = true;
             server.watcher.on("change", (path) => delete sources[path]);
+        },
+        async transformIndexHtml(html, chunk) {
+            if (!isServer) {
+                const task = [];
+
+                html = mapHtmlAttrs(html, (value) => {
+                    const { ext, name } = path.parse(value);
+                    const type = ext.replace(".", "");
+                    if (!files[type]) return value;
+
+                    const id = path.join(
+                        path.relative(
+                            cwd,
+                            path.join(path.dirname(chunk.filename), value)
+                        )
+                    );
+
+                    const fileName = "-/" + name + "-" + hash(id) + ext;
+
+                    task.push(copy(id, outDir + "/" + fileName));
+
+                    const url = "/" + fileName;
+
+                    return url;
+                });
+
+                await Promise.all(task);
+            }
+            return html;
         },
         transform(code, id) {
             if (!/node_modules/.test(id) && /\.([tj]s|[jt]sx)$/.test(id)) {
