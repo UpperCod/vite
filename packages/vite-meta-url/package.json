@@ -1,7 +1,7 @@
 {
     "name": "@uppercod/vite-meta-url",
     "type": "module",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "description": "resolve a file using URL.href in server or build mode when using vite",
     "main": "./module.cjs",
     "module": "./src/module.js",
