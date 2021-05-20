@@ -58,15 +58,20 @@ export default function pluginReplaceImport(files) {
                             });
 
                         source = await sources[id];
-
-                        token.toString = () =>
-                            `const ${token.scope} = ${
+                        token.toString = () => {
+                            const code = `${
+                                token.scope ? `const ${token.scope} =` : ""
+                            } ${
                                 source.inline
                                     ? source.inline
                                     : isServer
                                     ? `new URL("${source.id}", import.meta.url).href`
                                     : `import.meta.ROLLUP_FILE_URL_${source.id}`
                             }`;
+                            return token.dinamic
+                                ? `Promise.resolve(${code})`
+                                : code;
+                        };
 
                         return token;
                     },
