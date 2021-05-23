@@ -5,6 +5,7 @@ import { hash } from "@uppercod/hash";
 import { mapHtmlAttrs, copy } from "./utils.js";
 
 const cwd = process.cwd();
+
 /**
  * @param {Files} files
  * @returns {import("vite").Plugin}
@@ -33,7 +34,8 @@ export default function pluginReplaceImport(files) {
                 html = mapHtmlAttrs(html, (value) => {
                     const { ext, name } = path.parse(value);
                     const type = ext.replace(".", "");
-                    if (!files[type]) return value;
+                    if (!files[type] || /assets\/\S+\.\w+$/.test(value))
+                        return value;
 
                     const id = path.join(
                         path.relative(
