@@ -1,0 +1,57 @@
+{
+    "name": "@uppercod/vite-liquidjs",
+    "type": "module",
+    "version": "1.0.0",
+    "description": "process html files with liquidjs for vite",
+    "main": "./module.cjs",
+    "module": "./src/module.js",
+    "types": "./module.d.ts",
+    "exports": {
+        ".": {
+            "import": "./src/module.js",
+            "require": "./module.cjs"
+        }
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "types": "tsc",
+        "build": "rollup -c",
+        "dev": "rollup -c -w",
+        "test:1": "vite build --config tests/example/vite.config.js",
+        "test": "npm run test:1 && ava",
+        "prepublishOnly": "npm run test && npm run build && npm run types"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/uppercod/vite-plugins.git"
+    },
+    "author": "UpperCod",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/uppercod/vite-plugins/issues"
+    },
+    "homepage": "https://github.com/uppercod/vite-plugins#readme",
+    "dependencies": {
+        "@types/node": "latest",
+        "liquidjs": "latest",
+        "easy-tag-for-liquidjs": "latest",
+        "vite": "latest"
+    },
+    "devDependencies": {
+        "ava": "latest",
+        "rollup": "latest",
+        "typescript": "latest"
+    },
+    "ava": {
+        "files": [
+            "tests/**/*.test.js"
+        ]
+    },
+    "prettier": {
+        "tabWidth": 4,
+        "singleQuote": false,
+        "endOfLine": "auto"
+    }
+}
