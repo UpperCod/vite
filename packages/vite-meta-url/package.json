@@ -42,7 +42,8 @@
     "devDependencies": {
         "ava": "latest",
         "rollup": "latest",
-        "typescript": "latest"
+        "typescript": "latest",
+        "fast-glob": "^3.2.7"
     },
     "ava": {
         "files": [
