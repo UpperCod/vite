@@ -14,6 +14,7 @@ export default function pluginReplaceImport(files) {
     let isServer;
     let sources = {};
     let outDir;
+    let mark = "";
     const ext = Object.keys(files).filter((key) => files[key]);
     const filter = RegExp(`\\.(${ext.join("|")})$`);
     const virtualModuleNamespace = `\0vite-meta-url/`;
@@ -26,7 +27,12 @@ export default function pluginReplaceImport(files) {
         },
         configureServer(server) {
             isServer = true;
-            server.watcher.on("change", (path) => delete sources[path]);
+            server.watcher.on("change", (path) => {
+                if (sources[path]) {
+                    mark = Date.now();
+                    delete sources[path];
+                }
+            });
         },
         async transformIndexHtml(html, chunk) {
             if (!isServer) {
@@ -72,6 +78,8 @@ export default function pluginReplaceImport(files) {
                         const { base, ext } = path.parse(id);
                         const type = ext.replace(".", "");
 
+                        this.addWatchFile(id);
+
                         sources[id] =
                             sources[id] ||
                             Promise.resolve().then(async () => {
@@ -102,7 +110,7 @@ export default function pluginReplaceImport(files) {
                         source = await sources[id];
                         token.toString = () => {
                             if (source.module) {
-                                const id = hash(source.src);
+                                const id = hash(source.src) + mark;
                                 virtualModule[id] = source;
                                 return `${token.type} ${token.scope} from "${
                                     virtualModuleNamespace + id
