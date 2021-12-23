@@ -11,7 +11,10 @@ let currentConfig;
  * @param {string} cssText
  */
 const defaultWrapper = (cssText) =>
-    `_css\`${cssText.replace(/`/g, "\\`").replace(/\${/g, "\\${")}\``;
+    `
+import { css } from "atomico";
+export default css\`${cssText.replace(/`/g, "\\`").replace(/\${/g, "\\${")}\`;
+`;
 
 export default (wrapper = defaultWrapper) =>
     async (src, server) => {
@@ -36,6 +39,7 @@ export default (wrapper = defaultWrapper) =>
         const cssText = server ? css : csso.minify(css).css;
 
         return {
+            module: true,
             inline: wrapper(cssText),
         };
     };

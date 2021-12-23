@@ -9,7 +9,10 @@ test("simple replace", async (t) => {
             const [, filename] = file.match(/\/(\w+)\.\w+.\w+/);
             t.is(
                 await readFile(file, "utf-8"),
-                await readFile(`tests/example/expect-${filename}.txt`, "utf-8")
+                await readFile(
+                    new URL(`example/expect-${filename}.txt`, import.meta.url),
+                    "utf-8"
+                )
             );
         })
     );
