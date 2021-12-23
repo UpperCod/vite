@@ -16,7 +16,8 @@ export default function pluginReplaceImport(files) {
     let outDir;
     const ext = Object.keys(files).filter((key) => files[key]);
     const filter = RegExp(`\\.(${ext.join("|")})$`);
-
+    const virtualModuleNamespace = `\0vite-meta-url/`;
+    const virtualModule = {};
     return {
         name: "plugin-meta-url",
         configResolved(config) {
@@ -85,8 +86,9 @@ export default function pluginReplaceImport(files) {
 
                                 return typeof source == "object" &&
                                     source.inline
-                                    ? source
+                                    ? { ...source, src }
                                     : {
+                                          src,
                                           id: isServer
                                               ? token.src
                                               : this.emitFile({
@@ -99,6 +101,13 @@ export default function pluginReplaceImport(files) {
 
                         source = await sources[id];
                         token.toString = () => {
+                            if (source.module) {
+                                const id = hash(source.src);
+                                virtualModule[id] = source;
+                                return `${token.type} ${token.scope} from "${
+                                    virtualModuleNamespace + id
+                                }"`;
+                            }
                             const code = `${
                                 token.scope ? `const ${token.scope} =` : ""
                             } ${
@@ -118,6 +127,17 @@ export default function pluginReplaceImport(files) {
                 });
             }
             return null;
+        },
+        resolveId(id) {
+            if (!id.indexOf(virtualModuleNamespace)) {
+                return id;
+            }
+        },
+        load(id) {
+            if (!id.indexOf(virtualModuleNamespace)) {
+                const [, partId] = id.split("/");
+                return virtualModule[partId].inline;
+            }
         },
     };
 }
