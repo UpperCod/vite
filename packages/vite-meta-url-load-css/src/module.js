@@ -11,7 +11,7 @@ let currentConfig;
  * @param {string} cssText
  */
 const defaultWrapper = (cssText) =>
-    `_css\`${cssText.replace(/`/g, "\\`").replace(/${/g, "\\${")}\``;
+    `_css\`${cssText.replace(/`/g, "\\`").replace(/\${/g, "\\${")}\``;
 
 export default (wrapper = defaultWrapper) =>
     async (src, server) => {
