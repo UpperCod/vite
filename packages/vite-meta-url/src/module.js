@@ -19,6 +19,8 @@ export default function pluginReplaceImport(files) {
     const filter = RegExp(`\\.(${ext.join("|")})$`);
     const virtualModuleNamespace = `\0vite-meta-url/`;
     const virtualModule = {};
+    const { normalize } = path;
+    const importers = {};
     return {
         name: "plugin-meta-url",
         configResolved(config) {
@@ -27,17 +29,21 @@ export default function pluginReplaceImport(files) {
         },
         configureServer(server) {
             isServer = true;
-            server.watcher.on("change", (path) => {
-                if (sources[path]) {
+            server.watcher.on("change", function cleanSources(id) {
+                id = normalize(id);
+                const importer = importers[id];
+                if (importer) {
+                    [...importer].forEach(cleanSources);
+                    delete importers[id];
+                } else if (sources[id]) {
                     mark = Date.now();
-                    delete sources[path];
+                    delete sources[id];
                 }
             });
         },
         async transformIndexHtml(html, chunk) {
             if (!isServer) {
                 const task = [];
-
                 html = mapHtmlAttrs(html, (value) => {
                     const { ext, name } = path.parse(value);
                     const type = ext.replace(".", "");
@@ -65,8 +71,11 @@ export default function pluginReplaceImport(files) {
             return html;
         },
         transform(code, id) {
+            id = normalize(id);
             if (!/node_modules/.test(id) && /\.([tj]s|[jt]sx)$/.test(id)) {
                 const dir = path.dirname(id);
+                importers[id] = importers[id] || new Set();
+                const importer = importers[id];
                 return replaceImport({
                     code,
                     filter: (id) => filter.test(id),
@@ -79,6 +88,8 @@ export default function pluginReplaceImport(files) {
                         const type = ext.replace(".", "");
 
                         this.addWatchFile(id);
+
+                        importer.add(id);
 
                         sources[id] =
                             sources[id] ||
@@ -108,6 +119,7 @@ export default function pluginReplaceImport(files) {
                             });
 
                         source = await sources[id];
+
                         token.toString = () => {
                             if (source.module) {
                                 const id = hash(source.src) + mark;
